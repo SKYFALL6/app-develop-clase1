@@ -36,14 +36,19 @@ function users(page) {
             `
                 result.info.data.forEach(element => {
                     list_user = list_user + `
-                <tr>
-                <td>${element.id}</td>
-                <td>${element.first_name}</td>
-                <td>${element.last_name}</td>
-                <td><img src="${element.avatar}" class="img-thumbnail" alt="avatar del usuario"></td>
-                <td><button type="button" class="btn btn-info" onclick="getUser('${element.id}')">Ver</button></td>
-                `
+<tr>
+<td>${element.id}</td>
+<td>${element.first_name}</td>
+<td>${element.last_name}</td>
+<td><img src="${element.avatar}" class="img-thumbnail" alt="avatar del usuario"></td>
+<td>
+    <button type="button" class="btn btn-info me-2" onclick="getUser('${element.id}')">Ver</button>
+    <button type="button" class="btn btn-danger" onclick="deleteUser('${element.id}')">Eliminar</button>
+</td>
+</tr>
+`
                 });
+
                 list_user = list_user + `
             </tbody>
             </table>
@@ -218,11 +223,52 @@ function saveUser() {
                         '<h3>Error al guardar el usuario</h3>'
                 }
                 const modalId = document.getElementById('modalUser')
-                const modal =  bootstrap.Modal.getInstance(modalId)
+                const modal = bootstrap.Modal.getInstance(modalId)
                 modal.hide()
             })
     }
     else {
         form.reportValidity()
     }
+}
+
+function deleteUser(id) {
+    if (!confirm('¿Estás seguro de eliminar este usuario?')) return;
+
+    const REQRES_ENDPOINT = 'https://reqres.in/api/users/' + id;
+    fetch(REQRES_ENDPOINT, {
+        method: 'DELETE',
+        headers: {
+            'Content-type': 'application/json',
+            'x-api-key': 'reqres-free-v1'
+        }
+    })
+        .then(response => {
+            if (response.status === 204) {
+                // Éxito simulado
+                document.getElementById('info').innerHTML = `
+        <div id="deleteMsg" class="alert alert-success" role="alert">
+            Éxito al eliminar el usuario
+        </div>`;
+                setTimeout(() => {
+                    const msg = document.getElementById('deleteMsg');
+                    if (msg) msg.remove();
+                }, 3000);
+                users(1); // Actualiza la lista de usuarios
+            } else {
+                document.getElementById('info').innerHTML = `
+        <div id="deleteMsg" class="alert alert-danger" role="alert">
+            Error al eliminar el usuario
+        </div>`;
+                setTimeout(() => {
+                    const msg = document.getElementById('deleteMsg');
+                    if (msg) msg.remove();
+                }, 300000);
+            }
+        })
+
+        .catch(error => {
+            console.error('Error al eliminar usuario:', error);
+            document.getElementById('info').innerHTML = '<h3>Error de red al eliminar el usuario</h3>';
+        });
 }
